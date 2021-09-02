@@ -54,11 +54,11 @@ class Motion:
             track.add_bar(bar)
         return track
 
-    def play(self, player, bpm=90, meter=(4,4)):
+    def play(self, player, bpm=100, meter=(4,4)):
         track = self.track(meter)
         beats = sum([bar.meter[0] for bar in track.bars])
         player.play_Track(track, 1, bpm)
-        time.sleep(bpm * beats / 60)
+        time.sleep(beats / (60 * bpm))
 
     def split(self, index):
         return (
@@ -81,17 +81,18 @@ class Motion:
         return Motion(context.index(cante), context.index(ccons), context, self.rhythm, self.fill)
 
     def fill_interval(self):
-        return self.set_fill(list(range(self.ante+1, self.cons+1)))
+        return self.set_fill(list(range(self.ante+1, self.cons)))
 
 class ScaleContext:
-    def __init__(self, scale):
+    def __init__(self, scale, octave=4):
         self.scale = scale
+        self.octave = octave
 
     def __getitem__(self, index):
-        return self.scale.degree(index)
+        return f"{self.scale.degree(index % 7 + 1)}-{self.octave + index//7}"
 
 if __name__ == "__main__":
     fluidsynth.init("./soundfonts/piano/grand-piano.sf2", driver="alsa")
-    m = Motion(1, 7, ScaleContext(scales.Ionian("C")))
+    m = Motion(0, 7, ScaleContext(scales.Ionian("C")))
     m.fill_interval().play(fluidsynth)
 
